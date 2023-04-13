@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import { Dropdown } from "@nextui-org/react";
+import { Dropdown, Checkbox } from "@nextui-org/react";
 
 export default function Game() {
   return (
@@ -44,6 +44,8 @@ export default function Game() {
 
             </Dropdown.Menu>
           </Dropdown>
+          <Checkbox color="gradient" labelColor="primary" defaultSelected>I want to play a game my friend has played.</Checkbox>
+
     </main>
   );
 }

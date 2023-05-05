@@ -44,7 +44,7 @@ export default function Game() {
 
             </Dropdown.Menu>
           </Dropdown>
-          <Checkbox color="gradient" labelColor="primary" defaultSelected>I want to play a game my friend has played.</Checkbox>
+          <Checkbox color="gradient" labelColor="primary" defaultSelected>I want to play a game that at least one friend has played.</Checkbox>
 
     </main>
   );

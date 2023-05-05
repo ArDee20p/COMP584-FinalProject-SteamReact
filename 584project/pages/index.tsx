@@ -1,5 +1,10 @@
 import { useState } from 'react';
 import Image from 'next/image';
+import { OwnedGamesResponse } from './api/steam';
+import { useRouter } from 'next/router';
+
+let ownedGames: OwnedGamesResponse;
+//const router = useRouter();
 
 export default function Home() {
   const [steamUrl, setSteamUrl] = useState('');
@@ -39,21 +44,34 @@ export default function Home() {
   const fetchOwnedGames = async () => {
     const steamId = await extractSteamId(steamUrl); 
     if (!steamId) return;
-  
     const response = await fetch(`/api/steam?action=getownedgames&steamId=${steamId}`);
-    const data = await response.json();
-    console.log(data);
+    const data = (await response.json()) as OwnedGamesResponse;
+    ownedGames = data;
+
+    console.debug('Number of games owned by steamID ' + steamId + ': ' + ownedGames.response.game_count);
+
+    const picker = Math.floor(Math.random() * ownedGames.response.game_count);
+    const pickedGame = ownedGames.response.games[picker];
+
+    (document.getElementById('gameImg') as HTMLImageElement).alt = pickedGame.name;
+
+    const gameImage = "https://steamcdn-a.akamaihd.net/steam/apps/" + pickedGame.appid +"/header.jpg";
+    (document.getElementById('gameImg') as HTMLImageElement).src = gameImage;
+
+    const gameUrl = "steam://run/" + pickedGame.appid;
+
+    var a = (document.getElementById('runLink')) as HTMLLinkElement;
+    
+    a.setAttribute("href", gameUrl);
+    console.debug("Chosen game: ");
+    console.debug(pickedGame.name);
+    console.debug(gameImage);
+    console.debug(gameUrl);
   };
   
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-10">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono lg:flex flex-col">
-        <p className="font-mono text-5xl lg:text-2x1 fixed left-0 top-0 flex w-full items-center justify-center border-b border-gray-300 bg-gray-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/60 dark:from-inherit lg:static lg:w-auto lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/60">
-          We'll pick a game for you!
-        </p>
-      </div>
-
       <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-2/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700/10 after:dark:from-sky-900 after:dark:via-[#0141ff]/40 before:lg:h-[360px]">
         <Image
           src="/steam.png"
@@ -62,6 +80,23 @@ export default function Home() {
           height={250}
           priority
         />
+      </div>
+
+      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono lg:flex flex-col">
+        <p className="font-mono text-5xl lg:text-2x1 fixed left-0 top-0 flex w-full items-center justify-center border-b border-gray-300 bg-gray-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/60 dark:from-inherit lg:static lg:w-auto lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/60">
+          We'll pick a game for you!
+        </p>
+      </div>
+
+      <div className="relative flex place-items-center">
+        <a id="runLink" href=""><Image
+          id="gameImg"
+          src=""
+          alt=""
+          width={460}
+          height={215}
+          priority
+        /></a>
       </div>
 
       <form className="w-96 max-w-3xl mx-auto">
@@ -73,7 +108,7 @@ export default function Home() {
             className="appearance-none font-mono italic border rounded w-full py-2 px-3 text-gray-600 leading-tight focus:outline-none focus:shadow-outline"
             id="url"
             type="text"
-            placeholder="Example: https://steamcommunity.com/profiles/XXXX/"
+            placeholder="https://steamcommunity.com/id/"
             value={steamUrl}
             onChange={handleInputChange}
           />

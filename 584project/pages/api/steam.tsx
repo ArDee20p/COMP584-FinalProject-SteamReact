@@ -94,7 +94,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     } catch (error) {
       res.status(500).json({ error: 'Error checking app ownership' });
     }
-  } else {
+  } 
+  //TODO: getuserstats
+
+  //TODO: showrecentlyplayed
+  
+  else {
     res.status(400).json({ error: 'Invalid action' });
   }
 };

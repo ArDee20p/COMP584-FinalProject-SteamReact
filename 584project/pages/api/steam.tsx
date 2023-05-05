@@ -40,8 +40,16 @@ export interface Friend {
   friend_since: number;
 }
 
+export interface OwnershipResponse {
+  ownsapp: boolean;
+  permanent: boolean;
+  timestamp: string;
+  ownersteamid: number;
+  sitelicense: boolean;
+}
+
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  const { action, steamId, vanityUrl } = req.query;
+  const { action, steamId, appId, vanityUrl } = req.query;
 
   if (action === 'getownedgames') {
     const url = `http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=0E00F7EF0B2F059F483C5D2AE58213B6&steamid=${steamId}&include_appinfo=true&format=json`;
@@ -75,6 +83,16 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
     } catch (error) {
       res.status(500).json({ error: 'Error retrieving friend list' });
+    }
+  } else if (action === 'checkownership') {
+    const url = `https://api.steampowered.com/ISteamUser/CheckAppOwnership/v2/?key=0E00F7EF0B2F059F483C5D2AE58213B6&steamid=${steamId}&appid=${appId}`;
+
+    try {
+      const response = await fetch(url);
+      const data = (await response.json()) as OwnershipResponse;
+      res.status(200).json(data);
+    } catch (error) {
+      res.status(500).json({ error: 'Error checking app ownership' });
     }
   } else {
     res.status(400).json({ error: 'Invalid action' });

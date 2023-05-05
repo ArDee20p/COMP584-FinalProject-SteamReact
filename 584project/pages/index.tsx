@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import Image from 'next/image';
-import { FriendListResponse, OwnedGamesResponse, OwnershipResponse } from './api/steam';
+import { FriendListResponse, OwnedGame, OwnedGamesResponse, OwnershipResponse } from './api/steam';
 import { useRouter } from 'next/router';
 import { Checkbox } from '@nextui-org/react';
 
@@ -57,14 +57,14 @@ export default function Home() {
 
     //Picker Section
     var picker = Math.floor(Math.random() * ownedGames.response.game_count);
-    var pickedGame = ownedGames.response.games[0]; //default to first returned game.
+    var pickedGame: OwnedGame;
 
     console.debug('Number of games owned by steamID ' + steamId + ': ' + ownedGames.response.game_count);
 
     //Friendship Checker Section
     //If we want to play something new with a friend:
     if (doFriendCheck) {
-      var pickedGame = ownedGames.response.games[picker];
+      pickedGame = ownedGames.response.games[picker];
 
       const friendsResp = await fetch(`/api/steam?action=getfriendlist&steamId=${steamId}`);
       const friendsList = (await friendsResp.json()) as FriendListResponse;
@@ -78,7 +78,7 @@ export default function Home() {
     }
     //If we have no friends, or don't care :'(
     else {
-      const pickedGame = ownedGames.response.games[picker];
+      pickedGame = ownedGames.response.games[picker];
     }
 
     //Data Showcasing Section
@@ -152,7 +152,7 @@ export default function Home() {
             onChange={handleInputChange}
           />
         </div>
-        <Checkbox id="friendChoice" className="w-full" color="gradient" labelColor="primary" onChange={handleFriendChange}>I want to play something that a friend has played.</Checkbox>
+        <Checkbox id="friendChoice" className="w-full" color="gradient" onChange={handleFriendChange}>I want to play something that a friend has played.</Checkbox>
         <div className="flex items-center justify-center">
           <button
             className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ml-4"

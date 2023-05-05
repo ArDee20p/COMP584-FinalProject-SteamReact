@@ -1,16 +1,22 @@
 import { useState } from 'react';
 import Image from 'next/image';
-import { OwnedGamesResponse } from './api/steam';
+import { FriendListResponse, OwnedGamesResponse, OwnershipResponse } from './api/steam';
 import { useRouter } from 'next/router';
+import { Checkbox } from '@nextui-org/react';
 
-let ownedGames: OwnedGamesResponse;
-//const router = useRouter();
+//TODO: should change the URL input to prefill https://steamcommunity.com/id/ in front of the user input, for ease of use. - James
 
 export default function Home() {
   const [steamUrl, setSteamUrl] = useState('');
 
+  var doFriendCheck = false;
+
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSteamUrl(event.target.value);
+  };
+
+  const handleFriendChange = (isSelected: boolean) => {
+    doFriendCheck = isSelected;
   };
 
   const extractSteamId = async (url: string): Promise<string> => {
@@ -42,27 +48,54 @@ export default function Home() {
   };
 
   const fetchOwnedGames = async () => {
+    //Initialization Section
     const steamId = await extractSteamId(steamUrl); 
     if (!steamId) return;
     const response = await fetch(`/api/steam?action=getownedgames&steamId=${steamId}`);
-    const data = (await response.json()) as OwnedGamesResponse;
-    ownedGames = data;
+
+    const ownedGames = (await response.json()) as OwnedGamesResponse;
+
+    //Picker Section
+    var picker = Math.floor(Math.random() * ownedGames.response.game_count);
+    var pickedGame = ownedGames.response.games[0]; //default to first returned game.
 
     console.debug('Number of games owned by steamID ' + steamId + ': ' + ownedGames.response.game_count);
 
-    const picker = Math.floor(Math.random() * ownedGames.response.game_count);
-    const pickedGame = ownedGames.response.games[picker];
+    //Friendship Checker Section
+    //If we want to play something new with a friend:
+    if (doFriendCheck) {
+      var pickedGame = ownedGames.response.games[picker];
 
+      const friendsResp = await fetch(`/api/steam?action=getfriendlist&steamId=${steamId}`);
+      const friendsList = (await friendsResp.json()) as FriendListResponse;
+
+      for (let i = 0; i < friendsList.friendslist.friends.length; i++) {
+        var friend = friendsList.friendslist.friends[i];
+        const ownedResp = await fetch(`/api/steam?action=checkownership&steamId=${friend.steamid}&appid=${pickedGame.appid}`);
+        const isOwned = (await ownedResp.json()) as OwnershipResponse;
+        if (isOwned.ownsapp) break;
+      }
+    }
+    //If we have no friends, or don't care :'(
+    else {
+      const pickedGame = ownedGames.response.games[picker];
+    }
+
+    //Data Showcasing Section
+    //get game name and display it
     (document.getElementById('gameImg') as HTMLImageElement).alt = pickedGame.name;
+    (document.getElementById('gameName') as HTMLParagraphElement).innerText = pickedGame.name;
 
+    //display app header image, used in store
     const gameImage = "https://steamcdn-a.akamaihd.net/steam/apps/" + pickedGame.appid +"/header.jpg";
     (document.getElementById('gameImg') as HTMLImageElement).src = gameImage;
 
+    //link the steam run link to the header image
     const gameUrl = "steam://run/" + pickedGame.appid;
-
     var a = (document.getElementById('runLink')) as HTMLLinkElement;
-    
     a.setAttribute("href", gameUrl);
+
+    //spit this stuff out to the console, just in case
     console.debug("Chosen game: ");
     console.debug(pickedGame.name);
     console.debug(gameImage);
@@ -83,7 +116,7 @@ export default function Home() {
       </div>
 
       <div className="z-10 w-full max-w-5xl items-center justify-between font-mono lg:flex flex-col">
-        <p className="font-mono text-5xl lg:text-2x1 fixed left-0 top-0 flex w-full items-center justify-center border-b border-gray-300 bg-gray-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/60 dark:from-inherit lg:static lg:w-auto lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/60">
+        <p id="leadIn" className="font-mono text-5xl lg:text-2x1 fixed left-0 top-0 flex w-full items-center justify-center border-b border-gray-300 bg-gray-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/60 dark:from-inherit lg:static lg:w-auto lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/60">
           We'll pick a game for you!
         </p>
       </div>
@@ -99,10 +132,16 @@ export default function Home() {
         /></a>
       </div>
 
-      <form className="w-96 max-w-3xl mx-auto">
+      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono lg:flex flex-col">
+        <p id="gameName" className="font-mono text-3xl lg:text-2x1 fixed left-0 top-0 flex w-full items-center justify-center border-b border-gray-300 bg-gray-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/60 dark:from-inherit lg:static lg:w-auto lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/60">
+          
+        </p>
+      </div>
+
+      <form className="w-128 max-w-3xl mx-auto">
         <div className="mb-4">
           <label className="block font-mono text-3xl text-gray-200 mb-2" htmlFor="user">
-            Enter User URL
+            Enter User ID:
           </label>
           <input
             className="appearance-none font-mono italic border rounded w-full py-2 px-3 text-gray-600 leading-tight focus:outline-none focus:shadow-outline"
@@ -113,6 +152,7 @@ export default function Home() {
             onChange={handleInputChange}
           />
         </div>
+        <Checkbox id="friendChoice" className="w-full" color="gradient" labelColor="primary" onChange={handleFriendChange}>I want to play something that a friend has played.</Checkbox>
         <div className="flex items-center justify-center">
           <button
             className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ml-4"

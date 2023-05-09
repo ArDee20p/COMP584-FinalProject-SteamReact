@@ -7,6 +7,10 @@ import { Checkbox } from '@nextui-org/react';
 //TODO: should change the URL input to prefill https://steamcommunity.com/id/ in front of the user input, for ease of use. - James
 
 export default function Home() {
+  const [imageUrl, setImageUrl] = useState('');
+
+
+
   const [steamUrl, setSteamUrl] = useState('');
 
   var doFriendCheck = false;
@@ -84,11 +88,14 @@ export default function Home() {
     //Data Showcasing Section
     //get game name and display it
     (document.getElementById('gameImg') as HTMLImageElement).alt = pickedGame.name;
+    // setImageUrl(data.imageUrl);
+
     (document.getElementById('gameName') as HTMLParagraphElement).innerText = pickedGame.name;
 
     //display app header image, used in store
     const gameImage = "https://steamcdn-a.akamaihd.net/steam/apps/" + pickedGame.appid +"/header.jpg";
     (document.getElementById('gameImg') as HTMLImageElement).src = gameImage;
+    setImageUrl(gameImage);
 
     //link the steam run link to the header image
     const gameUrl = "steam://run/" + pickedGame.appid;
@@ -122,13 +129,16 @@ export default function Home() {
       </div>
 
       <div className="relative flex place-items-center">
-        <a id="runLink" href=""><Image
+        <a id="runLink" href=""><Image 
           id="gameImg"
-          src=""
+          src={imageUrl}
           alt=""
           width={460}
-          height={215}
+          height={215} 
+        style={{ display: imageUrl ? 'block' : 'none' }}
           priority
+
+
         /></a>
       </div>
 

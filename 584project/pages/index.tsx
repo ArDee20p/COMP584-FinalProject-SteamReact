@@ -180,7 +180,7 @@ export default function Home() {
         <Checkbox id="unplayedChoice" className="w-full" color="gradient" onChange={handleUnplayedChange} label="I want to play something that I haven't played yet." labelColor="secondary" defaultSelected></Checkbox>
         <div className="flex items-center justify-center">
           <button
-            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ml-4"
+            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ml-4 m-4"
             type="button"
             onClick={fetchOwnedGames}
           >

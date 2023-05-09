@@ -4,12 +4,11 @@ import { FriendListResponse, OwnedGame, OwnedGamesResponse, OwnershipResponse } 
 import { useRouter } from 'next/router';
 import { Checkbox } from '@nextui-org/react';
 
-//TODO: should change the URL input to prefill https://steamcommunity.com/id/ in front of the user input, for ease of use. - James
-
 export default function Home() {
   const [steamUrl, setSteamUrl] = useState('');
 
   var doFriendCheck = false;
+  var unplayedOnly = true;
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSteamUrl(event.target.value);
@@ -17,6 +16,10 @@ export default function Home() {
 
   const handleFriendChange = (isSelected: boolean) => {
     doFriendCheck = isSelected;
+  };
+
+  const handleUnplayedChange = (isSelected: boolean) => {
+    unplayedOnly = isSelected;
   };
 
   const extractSteamId = async (url: string): Promise<string> => {
@@ -62,8 +65,14 @@ export default function Home() {
     console.debug('Number of games owned by steamID ' + steamId + ': ' + ownedGames.response.game_count);
 
     //Friendship Checker Section
-    //If we want to play something new with a friend:
+    //If we want to play something that a friend has played:
     if (doFriendCheck) {
+      if (unplayedOnly) {
+        while (ownedGames.response.games[picker].playtime_forever > 0) {
+          var picker = Math.floor(Math.random() * ownedGames.response.game_count);
+        }
+      }
+      
       pickedGame = ownedGames.response.games[picker];
 
       const friendsResp = await fetch(`/api/steam?action=getfriendlist&steamId=${steamId}`);
@@ -76,8 +85,13 @@ export default function Home() {
         if (isOwned.ownsapp) break;
       }
     }
-    //If we have no friends, or don't care :'(
+    //If we have no friends or don't care
     else {
+      if (unplayedOnly) {
+        while (ownedGames.response.games[picker].playtime_forever > 0) {
+          var picker = Math.floor(Math.random() * ownedGames.response.game_count);
+        }
+      }
       pickedGame = ownedGames.response.games[picker];
     }
 
@@ -117,7 +131,7 @@ export default function Home() {
 
       <div className="z-10 w-full max-w-5xl items-center justify-between font-mono lg:flex flex-col">
         <p id="leadIn" className="font-mono text-5xl lg:text-2x1 fixed left-0 top-0 flex w-full items-center justify-center border-b border-gray-300 bg-gray-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/60 dark:from-inherit lg:static lg:w-auto lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/60">
-          We'll pick a game for you!
+          We'll pick a game you haven't played!
         </p>
       </div>
 
@@ -152,7 +166,8 @@ export default function Home() {
             onChange={handleInputChange}
           />
         </div>
-        <Checkbox id="friendChoice" className="w-full" color="gradient" onChange={handleFriendChange}>I want to play something that a friend has played.</Checkbox>
+        <Checkbox id="friendChoice" className="w-full" color="gradient" onChange={handleFriendChange} label="I want to play something that a friend has played." labelColor="secondary"></Checkbox>
+        <Checkbox id="unplayedChoice" className="w-full" color="gradient" onChange={handleUnplayedChange} label="I want to play something that I haven't played yet." labelColor="secondary" defaultSelected></Checkbox>
         <div className="flex items-center justify-center">
           <button
             className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ml-4"

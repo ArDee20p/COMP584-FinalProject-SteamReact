@@ -156,9 +156,8 @@ export default function Home() {
         /></a>
       </div>
 
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono lg:flex flex-col">
+      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono lg:flex flex-col" style={{ display: imageUrl ? 'block' : 'none' }}>
         <p id="gameName" className="font-mono text-3xl lg:text-2x1 fixed left-0 top-0 flex w-full items-center justify-center border-b border-gray-300 bg-gray-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/60 dark:from-inherit lg:static lg:w-auto lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/60">
-          
         </p>
       </div>
 
